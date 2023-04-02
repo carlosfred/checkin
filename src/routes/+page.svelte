@@ -29,8 +29,6 @@
 		verificada: false
 	}
 
-	let confirmacaoAssinatura = '';
-
 	const projectId = "1d52caf3465601dbb97709f7f7cf9ee2";
 
 	const chains = [goerli, polygon];
@@ -69,14 +67,14 @@
 	}
 
 	const handleDisconnect = async () => {
+		console.log(config);
 		await disconnect();
-		idMessagem = -1;
+		idMessagem = -2;
 		config.conta = '';
 		config.assinatura = '';
 		config.mensagem = '';
 		config.verificada = '';
 		config.saldo = 0;
-		confirmacaoAssinatura = '';
 	}
 
 	const handleSignIn = async () => {
