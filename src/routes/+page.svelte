@@ -1,6 +1,6 @@
 <script>
 	import { configureChains, createClient } from "@wagmi/core";
-	import { disconnect, watchAccount, signMessage } from "@wagmi/core";
+	import { disconnect, watchAccount, signMessage, fetchBalance } from "@wagmi/core";
 	import { goerli } from "@wagmi/core/chains";
 	import { Web3Modal } from "@web3modal/html";
 	import { EthereumClient, modalConnectors, walletConnectProvider} from "@web3modal/ethereum";
@@ -11,6 +11,7 @@
 		conta: '',
 		assinatura: '',
 		mensagem: '',
+		saldo: 0,
 		verificada: false
 	}
 
@@ -27,7 +28,7 @@
 		autoConnect: false,
 		connectors: modalConnectors({
 			projectId: projectId,
-			version: "1", // or "2"
+			version: "2", // or "2"
 			appName: "web3Connect",
 			chains,
 		}),
@@ -58,6 +59,7 @@
 		config.assinatura = '';
 		config.mensagem = '';
 		config.verificada = '';
+		config.saldo = 0;
 		confirmacaoAssinatura = '';
 	}
 
@@ -82,12 +84,27 @@
 
 	const unwatch = watchAccount((account) => {
 		config.conta = account.address;
+		if (config.conta != undefined) {
+			getSaldo(config.conta);
+		}
 	})
+
+	const getSaldo = async (conta) => {
+		console.log(conta);
+		const balance = await fetchBalance({
+  			address: conta
+		})
+		config.saldo = balance.value;
+	}
 
 </script>
 
 <div class="container mx-auto flex flex-col justify-center items-center">
-	<div class="tracking-widest p-4 border-2 border-zinc-100 rounded-lg my-2">{config.conta ?? 'Carteira Não Conectada'}</div>
+	<div class="tracking-widest p-4 border-2 border-zinc-100 rounded-lg my-2">
+		{config.conta ?? 'Carteira Não Conectada'}
+		<br>
+		{config.saldo > 0 ? config.saldo : ''}
+	</div>
 
 	{#if !config.conta}
 		<button on:click={handleConnect} class="border-2 mt-5 mb-5 py-2 px-4 rounded-lg  border-red-900 bg-red-900 text-white font-semibold">
@@ -111,7 +128,7 @@
 	<button on:click={handleVerifySignature} class="border-2 py-2 px-4 rounded-lg mt-4 border-green-900 bg-green-900 text-white font-semibold">
 		Verificar Assinatura
 	</button>
-	<div class="tracking-widest p-4 border-2 border-zinc-100 rounded-lg my-2 max-w-lg {config.verificada ? 'text-green' : 'text-red'}">
+	<div class="tracking-widest p-4 border-2 border-zinc-100 rounded-lg my-2 max-w-lg">
 		{confirmacaoAssinatura}
 	</div>
 
