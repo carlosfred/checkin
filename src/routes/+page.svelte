@@ -1,12 +1,26 @@
 <script>
 	import { configureChains, createClient } from "@wagmi/core";
 	import { disconnect, watchAccount, signMessage, fetchBalance } from "@wagmi/core";
-	import { goerli } from "@wagmi/core/chains";
+	import { goerli, polygon } from "@wagmi/core/chains";
 	import { Web3Modal } from "@web3modal/html";
 	import { EthereumClient, modalConnectors, walletConnectProvider} from "@web3modal/ethereum";
 	import { ethers } from 'ethers';
 	import "../app.css";
-	
+
+	import Logo from "$lib/assets/logo.jpg";
+
+	let signInMessage = "Confirma o Check-in no Bar Bukovisk ?";
+
+	const retorno = [
+		{id: 0, msg: 'Check-in Realizado c/ Sucesso !!!'},
+		{id: 1, msg: 'Carteira Não possui NFT !!!'},
+		{id: 2, msg: 'NFT c/ prazo de validade expirado !!!'},
+		{id: 3, msg: 'Assinatura inválida !!!'}
+	]
+
+	let idMessagem = -1;
+	let mensagemSistema = 'Cliente Não Conectado';
+
 	const config = {
 		conta: '',
 		assinatura: '',
@@ -19,7 +33,7 @@
 
 	const projectId = "1d52caf3465601dbb97709f7f7cf9ee2";
 
-	const chains = [goerli];
+	const chains = [goerli, polygon];
 
 	// Wagmi Core Client
 	const { provider } = configureChains(chains, [walletConnectProvider({ projectId: projectId })]);
@@ -28,7 +42,7 @@
 		autoConnect: false,
 		connectors: modalConnectors({
 			projectId: projectId,
-			version: "2", // or "2"
+			version: "1", // or "2"
 			appName: "web3Connect",
 			chains,
 		}),
@@ -39,7 +53,7 @@
 	const ethereumClient = new EthereumClient(wagmiClient, chains);
 	
 	const web3modal = new Web3Modal(
-		{ projectId: projectId },
+		{ projectId: projectId, defaultChain: polygon },
 		ethereumClient
 	);
 
@@ -55,6 +69,7 @@
 
 	const handleDisconnect = async () => {
 		await disconnect();
+		idMessagem = -1;
 		config.conta = '';
 		config.assinatura = '';
 		config.mensagem = '';
@@ -64,7 +79,7 @@
 	}
 
 	const handleSignIn = async () => {
-		let msg = config.mensagem;
+		let msg = signInMessage;
 		const signature = await signMessage({
   			message: msg
 		})	
@@ -74,62 +89,55 @@
 	const handleVerifySignature = async () => {
 		const retorno = ethers.utils.verifyMessage(config.mensagem, config.assinatura);
 		if (retorno == config.conta) {
-			confirmacaoAssinatura = "Assinatura OK";
-			config.verificada = true;
+			idMessagem = Math.floor(Math.random() * 3);
+			mensagemSistema = retorno[idMessagem].mensagem;
 		} else {
-			confirmacaoAssinatura = "Assinatura Inválida";
-			config.verificada = false;
+			idMessagem = 3;
+			mensagemSistema = retorno[3].mensagem;
 		}
 	}
 
 	const unwatch = watchAccount((account) => {
+		console.log(ethereumClient);
 		config.conta = account.address;
 		if (config.conta != undefined) {
-			getSaldo(config.conta);
+			handleSignIn();
 		}
 	})
 
-	const getSaldo = async (conta) => {
-		console.log(conta);
-		const balance = await fetchBalance({
-  			address: conta
-		})
-		config.saldo = balance.value;
-	}
-
 </script>
 
-<div class="container mx-auto flex flex-col justify-center items-center">
-	<div class="tracking-widest p-4 border-2 border-zinc-100 rounded-lg my-2">
-		{config.conta ?? 'Carteira Não Conectada'}
-		<br>
-		{config.saldo > 0 ? config.saldo : ''}
-	</div>
+<div class="w-screen h-screen bg-black">
+	<div class="mx-auto flex flex-col justify-center items-center">
+		<div><img src={Logo} alt="Bukovisk Logo"/></div>
+		<div class="mt-7">
+			<button on:click={handleConnect} class="border-2 mt-5 mb-5 py-2 px-4 rounded-lg  border-red-900 bg-red-900 text-white font-semibold">
+				Realizar Check-in
+			</button>
+		</div>	
 
-	{#if !config.conta}
-		<button on:click={handleConnect} class="border-2 mt-5 mb-5 py-2 px-4 rounded-lg  border-red-900 bg-red-900 text-white font-semibold">
-			Connectar a Carteira V1
-		</button>
-	{:else}
-		<button on:click={handleDisconnect} class="border-2 mt-5 mb-5 py-2 px-4 rounded-lg  border-red-900 bg-red-900 text-white font-semibold">
-			Desconnectar a Carteira V1
-		</button>
-	{/if}
-	<div class='flex flex-col justify-center items-center space-y-4 m-4'>
-		<h4 class='font-semibold'>mensagem</h4>
-		<input type='text' class='border-2 border-gray-700 rounded-md py-2 px-4 w-[400px]' bind:value={config.mensagem}/>
-	</div>
-	<button on:click={handleSignIn} class="border-2 py-2 px-4 rounded-lg  border-red-900 bg-red-900 text-white font-semibold">
-		Assinar Mensagem
-	</button>
-	<div class="tracking-widest p-4 border-2 border-zinc-100 rounded-lg my-2 max-w-lg">
-		{config.assinatura.substring(0,10)}...{config.assinatura.substring(config.assinatura.length-10, config.assinatura.length)}
-	</div>
-	<button on:click={handleVerifySignature} class="border-2 py-2 px-4 rounded-lg mt-4 border-green-900 bg-green-900 text-white font-semibold">
-		Verificar Assinatura
-	</button>
-	<div class="tracking-widest p-4 border-2 border-zinc-100 rounded-lg my-2 max-w-lg">
-		{confirmacaoAssinatura}
-	</div>
+		<div class="mt-7">
+			<button on:click={handleDisconnect} class="border-2 mt-5 mb-5 py-2 px-4 rounded-lg  border-red-900 bg-red-900 text-white font-semibold">
+				Desconnectar a Carteira V1
+			</button>			
+		</div>
 
+		<div class="mt-7">
+			<button on:click={handleVerifySignature} class="border-2 mt-5 mb-5 py-2 px-4 rounded-lg  border-red-900 bg-red-900 text-white font-semibold">
+				Verificar a Mensagem
+			</button>			
+		</div>
+
+		{#if idMessagem > -2}		
+			<div class="mt-7 text-center text-white">
+				{mensagemSistema}
+			</div>
+			<div>
+				<button on:click={handleDisconnect} class="border-2 mt-5 mb-5 py-2 px-4 rounded-lg  border-red-900 bg-red-900 text-white font-semibold">
+					OK
+				</button>			
+			</div>
+		{/if}
+
+	</div>
 </div>
