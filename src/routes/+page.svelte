@@ -11,14 +11,14 @@
 
 	let signInMessage = "Confirma o Check-in no Bar Bukovisk ?";
 
-	const retorno = [
+	const retornoStatus = [
 		{id: 0, msg: 'Check-in Realizado c/ Sucesso !!!'},
 		{id: 1, msg: 'Carteira Não possui NFT !!!'},
 		{id: 2, msg: 'NFT c/ prazo de validade expirado !!!'},
 		{id: 3, msg: 'Assinatura inválida !!!'}
 	]
 
-	let idMessagem = -1;
+	let idMensagem = -1;
 	let mensagemSistema = 'Cliente Não Conectado';
 
 	const config = {
@@ -67,9 +67,8 @@
 	}
 
 	const handleDisconnect = async () => {
-		console.log(config);
 		await disconnect();
-		idMessagem = -2;
+		idMensagem = -1;
 		config.conta = '';
 		config.assinatura = '';
 		config.mensagem = '';
@@ -90,18 +89,18 @@
 		web3modal.closeModal();
 		const ret = ethers.utils.verifyMessage(signInMessage, config.assinatura);
 		if (ret == config.conta) {
-			idMessagem = Math.floor(Math.random() * 3);
-			mensagemSistema = retorno[idMessagem].msg;
+			idMensagem = Math.floor(Math.random() * 3);
+			mensagemSistema = retornoStatus[idMensagem].msg;
 		} else {
-			idMessagem = 3;
-			mensagemSistema = retorno[3].msg;
+			idMensagem = 3;
+			mensagemSistema = retornoStatus[3].msg;
 		}
 	}
 
 	const unwatch = watchAccount((account) => {
 		config.conta = account.address;
 		if (config.conta != undefined) {
-			idMessagem = 0;
+			idMensagem = 0;
 			mensagemSistema = "Aguardando validação do Cliente !!!";
 			handleSignIn();
 		}
@@ -112,13 +111,15 @@
 <div class="w-screen h-screen bg-black">
 	<div class="mx-auto flex flex-col justify-center items-center">
 		<div><img src={Logo} alt="Bukovisk Logo"/></div>
-		<div class="mt-7">
-			<button on:click={handleConnect} class="border-2 mt-5 mb-5 py-2 px-4 rounded-lg  border-red-900 bg-red-900 text-white font-semibold">
-				Realizar Check-in
-			</button>
-		</div>	
+		{#if idMensagem == -1}
+			<div class="mt-7">
+				<button on:click={handleConnect} class="border-2 mt-5 mb-5 py-2 px-4 rounded-lg  border-red-900 bg-red-900 text-white font-semibold">
+					Realizar Check-in
+				</button>
+			</div>	
+		{/if}
 
-		{#if idMessagem > -2}		
+		{#if idMensagem > -1}		
 			<div class="mt-7 text-center text-white">
 				{mensagemSistema}
 			</div>
