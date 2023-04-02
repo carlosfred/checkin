@@ -120,6 +120,8 @@
 			</button>
 		</div>	
 
+		Teste
+
 		{#if idMessagem > -2}		
 			<div class="mt-7 text-center text-white">
 				{mensagemSistema}
