@@ -14,6 +14,8 @@
 		verificada: false
 	}
 
+	let confirmacaoAssinatura = '';
+
 	const projectId = "1d52caf3465601dbb97709f7f7cf9ee2";
 
 	const chains = [goerli];
@@ -55,6 +57,8 @@
 		config.conta = '';
 		config.assinatura = '';
 		config.mensagem = '';
+		config.verificada = '';
+		confirmacaoAssinatura = '';
 	}
 
 	const handleSignIn = async () => {
@@ -67,7 +71,13 @@
 
 	const handleVerifySignature = async () => {
 		const retorno = ethers.utils.verifyMessage(config.mensagem, config.assinatura);
-		console.log(retorno);
+		if (retorno == config.conta) {
+			confirmacaoAssinatura = "Assinatura OK";
+			config.verificada = true;
+		} else {
+			confirmacaoAssinatura = "Assinatura Inválida";
+			config.verificada = false;
+		}
 	}
 
 	const unwatch = watchAccount((account) => {
@@ -101,4 +111,8 @@
 	<button on:click={handleVerifySignature} class="border-2 py-2 px-4 rounded-lg mt-4 border-green-900 bg-green-900 text-white font-semibold">
 		Verificar Assinatura
 	</button>
+	<div class="tracking-widest p-4 border-2 border-zinc-100 rounded-lg my-2 max-w-lg {config.verificada ? 'text-green' : 'text-red'}">
+		{confirmacaoAssinatura}
+	</div>
+
 </div>
