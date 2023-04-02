@@ -64,6 +64,7 @@
 	});
 
 	const handleConnect = async () => {
+		handleDisconnect();
 		web3modal.openModal();
 	}
 
@@ -84,23 +85,26 @@
   			message: msg
 		})	
 		config.assinatura = signature;	
+		handleVerifySignature();
 	}
 
 	const handleVerifySignature = async () => {
-		const retorno = ethers.utils.verifyMessage(config.mensagem, config.assinatura);
-		if (retorno == config.conta) {
+		web3modal.closeModal();
+		const ret = ethers.utils.verifyMessage(signInMessage, config.assinatura);
+		if (ret == config.conta) {
 			idMessagem = Math.floor(Math.random() * 3);
-			mensagemSistema = retorno[idMessagem].mensagem;
+			mensagemSistema = retorno[idMessagem].msg;
 		} else {
 			idMessagem = 3;
-			mensagemSistema = retorno[3].mensagem;
+			mensagemSistema = retorno[3].msg;
 		}
 	}
 
 	const unwatch = watchAccount((account) => {
-		console.log(ethereumClient);
 		config.conta = account.address;
 		if (config.conta != undefined) {
+			idMessagem = 0;
+			mensagemSistema = "Aguardando validação do Cliente !!!";
 			handleSignIn();
 		}
 	})
@@ -115,18 +119,6 @@
 				Realizar Check-in
 			</button>
 		</div>	
-
-		<div class="mt-7">
-			<button on:click={handleDisconnect} class="border-2 mt-5 mb-5 py-2 px-4 rounded-lg  border-red-900 bg-red-900 text-white font-semibold">
-				Desconnectar a Carteira V1
-			</button>			
-		</div>
-
-		<div class="mt-7">
-			<button on:click={handleVerifySignature} class="border-2 mt-5 mb-5 py-2 px-4 rounded-lg  border-red-900 bg-red-900 text-white font-semibold">
-				Verificar a Mensagem
-			</button>			
-		</div>
 
 		{#if idMessagem > -2}		
 			<div class="mt-7 text-center text-white">
