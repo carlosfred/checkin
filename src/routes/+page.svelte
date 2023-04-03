@@ -31,11 +31,11 @@
 
 	const projectId = "1d52caf3465601dbb97709f7f7cf9ee2";
 
-	const chains = [goerli, polygon];
+	const chains = [polygon, goerli];
 
 	// Wagmi Core Client
-	const { provider } = configureChains(chains, [walletConnectProvider({ projectId: projectId })]);
-	
+	const { provider } = configureChains(chains, [walletConnectProvider({ projectId })]);
+
 	const wagmiClient = createClient({
 		autoConnect: false,
 		connectors: modalConnectors({
@@ -51,7 +51,7 @@
 	const ethereumClient = new EthereumClient(wagmiClient, chains);
 	
 	const web3modal = new Web3Modal(
-		{ projectId: projectId, defaultChain: polygon },
+		{ projectId: projectId, defaultChain: polygon, mobileWallets: [] },
 		ethereumClient
 	);
 
