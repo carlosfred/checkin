@@ -79,11 +79,16 @@
 	const handleSignIn = async () => {
 		let agora = new Date().getTime();
 		let msg = signInMessage + "(" + agora + ")";
-		const signature = await signMessage({
+		await signMessage({
   			message: msg
-		})	
-		config.assinatura = signature;	
-		handleVerifySignature(msg);
+		}).then ((signature) => {
+			config.assinatura = signature;	
+			handleVerifySignature(msg);
+		})
+		.catch(error => {
+			idMensagem = 4;
+			mensagemSistema = "Ocorreu um erro na validação da assinatura, tente novamente !!!";
+    	})	
 	}
 
 	const handleVerifySignature = async (msg) => {
