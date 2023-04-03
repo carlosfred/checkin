@@ -51,7 +51,7 @@
 	const ethereumClient = new EthereumClient(wagmiClient, chains);
 	
 	const web3modal = new Web3Modal(
-		{ projectId: projectId, defaultChain: polygon, mobileWallets: [] },
+		{ projectId: projectId, defaultChain: polygon, explorerAllowList: [] },
 		ethereumClient
 	);
 
