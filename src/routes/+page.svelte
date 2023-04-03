@@ -77,17 +77,18 @@
 	}
 
 	const handleSignIn = async () => {
-		let msg = signInMessage;
+		let agora = new Date().getTime();
+		let msg = signInMessage + "(" + agora + ")";
 		const signature = await signMessage({
   			message: msg
 		})	
 		config.assinatura = signature;	
-		handleVerifySignature();
+		handleVerifySignature(msg);
 	}
 
-	const handleVerifySignature = async () => {
+	const handleVerifySignature = async (msg) => {
 		web3modal.closeModal();
-		const ret = ethers.utils.verifyMessage(signInMessage, config.assinatura);
+		const ret = ethers.utils.verifyMessage(msg, config.assinatura);
 		if (ret == config.conta) {
 			idMensagem = Math.floor(Math.random() * 3);
 			mensagemSistema = retornoStatus[idMensagem].msg;
